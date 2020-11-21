@@ -45,16 +45,16 @@
     dst-len 0<> if
         begin
             src src-idx + c@ dup
-            1 src-idx + to src-idx
+            1 src-idx + to src-idx \ srx-idx++
             2 rshift
             base64-map-value dst dst-idx + c!
-            1 dst-idx + to dst-idx
+            1 dst-idx + to dst-idx \ dst-idx++
 
-            3 and 4 lshift
+            3 and 4 lshift \ => 00110000
             src-idx src-len < if
                 src src-idx + c@ dup
                 1 src-idx + to src-idx
-                4 rshift rot or
+                4 rshift rot or \ 2 bits from (3 and 4 lshift) OR 4 rshift
 
                 base64-map-value dst dst-idx + c!
                 1 dst-idx + to dst-idx
