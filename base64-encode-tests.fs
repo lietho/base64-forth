@@ -1,6 +1,5 @@
-s" Zm9vYg=="  base64-padding-char-num 2 <> throw
-s" Zm9vYmE="  base64-padding-char-num 1 <> throw
-s" Zm9vYmFy"  base64-padding-char-num 0 <> throw
+s" testsuite.fs" included
+s" base64.fs" included
 
 s" "        base64-encode-len 0 <> throw
 s" f"       base64-encode-len 4 <> throw

@@ -35,12 +35,12 @@
 : fill-with-base64-padding-char ( addr u -- addr u) 
     2dup base64-padding-char fill ;
 
-: next-byte ( n n -- b b )
+: next-byte ( addr u -- b b )
 \ takes a char/byte from a source and puts it onto the stack two times
   + c@ dup
   ;
 
-: write-to-dst ( c n n -- )
+: write-to-dst ( c addr u -- )
 \ writes the character in c to the location specified by the two values on top
   + c!
   ;
