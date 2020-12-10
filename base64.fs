@@ -61,7 +61,7 @@
   ;
 
 : take-last-six-bits ( b -- b )
-\ takes the last 4 bits of a byte and put them in this position: 00111100
+\ takes the last 4 bits of a byte and put them in this position: 00111111
   63 and
   ;
 
@@ -84,37 +84,51 @@
     { dst dst-len src-idx dst-idx }
     dst-len 0<> if
         begin
+            \ take next byte from source
             src src-idx next-byte
             src-idx 1+ to src-idx
+
+            \ map first six bits and write to destination
             take-first-six-bits base64-map-value
             dst dst-idx write-to-dst
             dst-idx 1+ to dst-idx 
 
             take-last-two-bits
+            \ if src is fully consumed, the last two bits come into the result; else proceed 
             src-idx src-len < if
+                \ take next byte from source
                 src src-idx next-byte
                 src-idx 1+ to src-idx
+
+                \ combine values and write to destination
 		            merge-with-next-four-bits base64-map-value
                 dst dst-idx write-to-dst
                 dst-idx 1+ to dst-idx
 
 		            take-last-four-bits
+                \ if src is fully consumed, the last four bits come into the result; else proceed 
                 src-idx src-len < if
+                    \ take next byte from source
                     src src-idx next-byte
                     src-idx 1+ to src-idx
+
+                    \ combine values and write to destination
                     merge-with-next-two-bits base64-map-value
 		                dst dst-idx write-to-dst
                     dst-idx 1+ to dst-idx
 
+                    \ map last six bits and write to destination
 		                take-last-six-bits base64-map-value
                     dst dst-idx write-to-dst
                     dst-idx 1+ to dst-idx
                 else
+                    \ map last four bits and write to destination
                     base64-map-value
                     dst dst-idx write-to-dst
                     dst-idx 1+ to dst-idx
                 endif
             else
+                \ map last two bits and write to destination
                 base64-map-value
                 dst dst-idx write-to-dst
                 dst-idx 1+ to dst-idx
