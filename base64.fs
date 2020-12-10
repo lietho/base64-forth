@@ -2,38 +2,38 @@
 
 : base64-padding-char-num ( addr u -- u)
 \ gets the number of the padding characters at the end of the specified string
-    0 >r
-    begin
-        1- 2dup
-        chars + c@
-        base64-padding-char <> dup invert
-        if
-            r> 1+ >r
-        endif
-    until 
-    2drop
-    r> ;
+  0 >r
+  begin
+      1- 2dup
+      chars + c@
+      base64-padding-char <> dup invert
+      if
+          r> 1+ >r
+      endif
+  until 
+  2drop
+  r> ;
 
 : base64-map-value ( u -- c)
 \ maps a value between 0 and 63 to the corresponding character
-    s" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-    drop swap
-    chars + c@ ;
+  s" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  drop swap
+  chars + c@ ;
 
 : base64-encode-len ( addr u -- u )
 \ calculates the size of the base64 encoded string by the size of the input
-    nip 3 /mod swap 0>
-    if 1+ endif
-    4 * ;
+  nip 3 /mod swap 0>
+  if 1+ endif
+  4 * ;
 
 : base64-decode-len ( addr u -- u )
 \ calculates the size of the decoded string by the size of the encoded string
-   2dup base64-padding-char-num >r
-   4 / 3 * r> -
-   nip ;
+  2dup base64-padding-char-num >r
+  4 / 3 * r> -
+  nip ;
 
 : fill-with-base64-padding-char ( addr u -- addr u) 
-    2dup base64-padding-char fill ;
+  2dup base64-padding-char fill ;
 
 : next-byte ( addr u -- b b )
 \ takes a char/byte from a source and puts it onto the stack two times
@@ -76,72 +76,72 @@
   ;
 
 : base64-encode { src src-len -- addr u }
-    src src-len
-    base64-encode-len here swap
-    dup chars allot
-    fill-with-base64-padding-char
-    0 0
-    { dst dst-len src-idx dst-idx }
-    dst-len 0<> if
-        begin
-            \ take next byte from source
-            src src-idx next-byte
-            src-idx 1+ to src-idx
+  src src-len
+  base64-encode-len here swap
+  dup chars allot
+  fill-with-base64-padding-char
+  0 0
+  { dst dst-len src-idx dst-idx }
+  dst-len 0<> if
+      begin
+          \ take next byte from source
+          src src-idx next-byte
+          src-idx 1+ to src-idx
 
-            \ map first six bits and write to destination
-            take-first-six-bits base64-map-value
-            dst dst-idx write-to-dst
-            dst-idx 1+ to dst-idx 
+          \ map first six bits and write to destination
+          take-first-six-bits base64-map-value
+          dst dst-idx write-to-dst
+          dst-idx 1+ to dst-idx 
 
-            take-last-two-bits
-            \ if src is fully consumed, the last two bits come into the result; else proceed 
-            src-idx src-len < if
-                \ take next byte from source
-                src src-idx next-byte
-                src-idx 1+ to src-idx
+          take-last-two-bits
+          \ if src is fully consumed, the last two bits come into the result; else proceed 
+          src-idx src-len < if
+              \ take next byte from source
+              src src-idx next-byte
+              src-idx 1+ to src-idx
 
-                \ combine values and write to destination
-		            merge-with-next-four-bits base64-map-value
-                dst dst-idx write-to-dst
-                dst-idx 1+ to dst-idx
+              \ combine values and write to destination
+              merge-with-next-four-bits base64-map-value
+              dst dst-idx write-to-dst
+              dst-idx 1+ to dst-idx
 
-		            take-last-four-bits
-                \ if src is fully consumed, the last four bits come into the result; else proceed 
-                src-idx src-len < if
-                    \ take next byte from source
-                    src src-idx next-byte
-                    src-idx 1+ to src-idx
+              take-last-four-bits
+              \ if src is fully consumed, the last four bits come into the result; else proceed 
+              src-idx src-len < if
+                  \ take next byte from source
+                  src src-idx next-byte
+                  src-idx 1+ to src-idx
 
-                    \ combine values and write to destination
-                    merge-with-next-two-bits base64-map-value
-		                dst dst-idx write-to-dst
-                    dst-idx 1+ to dst-idx
+                  \ combine values and write to destination
+                  merge-with-next-two-bits base64-map-value
+                  dst dst-idx write-to-dst
+                  dst-idx 1+ to dst-idx
 
-                    \ map last six bits and write to destination
-		                take-last-six-bits base64-map-value
-                    dst dst-idx write-to-dst
-                    dst-idx 1+ to dst-idx
-                else
-                    \ map last four bits and write to destination
-                    base64-map-value
-                    dst dst-idx write-to-dst
-                    dst-idx 1+ to dst-idx
-                endif
-            else
-                \ map last two bits and write to destination
-                base64-map-value
-                dst dst-idx write-to-dst
-                dst-idx 1+ to dst-idx
-            endif
+                  \ map last six bits and write to destination
+                  take-last-six-bits base64-map-value
+                  dst dst-idx write-to-dst
+                  dst-idx 1+ to dst-idx
+              else
+                  \ map last four bits and write to destination
+                  base64-map-value
+                  dst dst-idx write-to-dst
+                  dst-idx 1+ to dst-idx
+              endif
+          else
+              \ map last two bits and write to destination
+              base64-map-value
+              dst dst-idx write-to-dst
+              dst-idx 1+ to dst-idx
+          endif
 
-        src-idx src-len >= until
-    endif
-    dst dst-len
-    ;
+      src-idx src-len >= until
+  endif
+  dst dst-len
+  ;
 
 : base64-decode { src src-len -- addr u }
 \ IDEA: Allocate memory for result, iterate over input, map values, set corresponding value in result
-    src src-len
-    base64-decode-len here swap
-    dup chars allot
-    ;
+  src src-len
+  base64-decode-len here swap
+  dup chars allot
+  ;
