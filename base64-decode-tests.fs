@@ -13,10 +13,10 @@ s" Zm9vYg=="  base64-decode-len 4 <> throw
 s" Zm9vYmE="  base64-decode-len 5 <> throw
 s" Zm9vYmFy"  base64-decode-len 6 <> throw
 
-s" "          base64-decode s" "        test
-s" Zg=="      base64-decode s" f"       test
-s" Zm8="      base64-decode s" fo"      test
-s" Zm9v"      base64-decode s" foo"     test
-s" Zm9vYg=="  base64-decode s" foob"    test
-s" Zm9vYmE="  base64-decode s" fooba"   test
-s" Zm9vYmFy"  base64-decode s" foobar"  test
+s" "          base64> s" "        test
+s" Zg=="      base64> s" f"       test
+s" Zm8="      base64> s" fo"      test
+s" Zm9v"      base64> s" foo"     test
+s" Zm9vYg=="  base64> s" foob"    test
+s" Zm9vYmE="  base64> s" fooba"   test
+s" Zm9vYmFy"  base64> s" foobar"  test

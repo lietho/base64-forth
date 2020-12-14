@@ -75,7 +75,7 @@
   6 rshift rot or
   ;
 
-: base64-encode { src src-len -- addr u }
+: >base64 { src src-len -- addr u }
   src src-len
   base64-encode-len here swap
   dup chars allot
@@ -139,7 +139,7 @@
   dst dst-len
   ;
 
-: base64-decode { src src-len -- addr u }
+: base64> { src src-len -- addr u }
 \ IDEA: Allocate memory for result, iterate over input, map values, set corresponding value in result
   src src-len
   base64-decode-len here swap
