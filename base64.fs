@@ -32,7 +32,6 @@
   4 * 3 /ceil
   - ;
 
-
 : base64-decode-len ( addr u -- u )
 \ calculates the size of the decoded string by the size of the encoded string
   2dup base64-padding-char-num >r
@@ -75,56 +74,36 @@
   ;
 
 : >base64 { src src-len -- }
-  0
-  { src-idx }
-  src-len 0> if
-      begin
-          \ take next byte from source
-          src src-idx next-byte
-          src-idx 1+ to src-idx
+  src-len 0 u+do
+    \ take next byte from source
+    src i next-byte
 
-          \ map first six bits and write to destination
-          take-first-six-bits base64-emit-value
+    i 3 mod 0 = if
+      \ map first six bits and emit
+      take-first-six-bits base64-emit-value
+      take-last-two-bits
+    endif
 
-          take-last-two-bits
-          \ if src is fully consumed, the last two bits come into the result; else proceed 
-          src-idx src-len < if
-              \ take next byte from source
-              src src-idx next-byte
-              src-idx 1+ to src-idx
+    i 3 mod 1 = if
+      \ combine four bits with previous two bits and emit
+      merge-with-next-four-bits base64-emit-value
+      take-last-four-bits
+    endif
 
-              \ combine values and write to destination
-              merge-with-next-four-bits base64-emit-value
+    i 3 mod 2 = if
+      \ combine two bits with previous four bits
+      merge-with-next-two-bits base64-emit-value
+      \ map last six bits and emit
+      take-last-six-bits base64-emit-value
+    endif
 
-              take-last-four-bits
-              \ if src is fully consumed, the last four bits come into the result; else proceed 
-              src-idx src-len < if
-                  \ take next byte from source
-                  src src-idx next-byte
-                  src-idx 1+ to src-idx
-
-                  \ combine values and write to destination
-                  merge-with-next-two-bits base64-emit-value
-
-                  \ map last six bits and write to destination
-                  take-last-six-bits base64-emit-value
-              else
-                  \ map last four bits and write to destination
-                  base64-emit-value
-              endif
-          else
-              \ map last two bits and write to destination
-              base64-emit-value
-          endif
-
-      src-idx src-len >= until
-      src-len base64-encode-padding-char-num 0 u+do base64-padding-char emit loop
-  endif
+  loop
+  \ emit the remaining bits if necessary
+  src-len 3 mod 0> if base64-emit-value endif
+  \ emit the padding characters
+  src-len base64-encode-padding-char-num 0 u+do base64-padding-char emit loop
   ;
 
-: base64> { src src-len -- addr u }
-\ IDEA: Allocate memory for result, iterate over input, map values, set corresponding value in result
-  src src-len
-  base64-decode-len here swap
-  dup chars allot
+
+: base64> { src src-len --  }
   ;
