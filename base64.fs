@@ -14,17 +14,24 @@
   2drop
   r> ;
 
-: base64-map-value ( u -- c)
-\ maps a value between 0 and 63 to the corresponding character
+: base64-emit-value ( u --)
+\ maps a value between 0 and 63 to the corresponding character and emits it
   s" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
   drop swap
-  chars + c@ ;
+  chars + c@ emit ;
 
-: base64-encode-len ( addr u -- u )
+: /ceil ( n1 n2 -- n )
+\ devides the first integer by the second and rounds to the next integer if necessary
+  /mod swap
+  0> if 1+ endif ;
+
+: base64-encode-padding-char-num ( u -- u )
 \ calculates the size of the base64 encoded string by the size of the input
-  nip 3 /mod swap 0>
-  if 1+ endif
-  4 * ;
+  dup 3 /ceil 4 * 
+  swap
+  4 * 3 /ceil
+  - ;
+
 
 : base64-decode-len ( addr u -- u )
 \ calculates the size of the decoded string by the size of the encoded string
@@ -32,17 +39,9 @@
   4 / 3 * r> -
   nip ;
 
-: fill-with-base64-padding-char ( addr u -- addr u) 
-  2dup base64-padding-char fill ;
-
 : next-byte ( addr u -- b b )
 \ takes a char/byte from a source and puts it onto the stack two times
   + c@ dup
-  ;
-
-: write-to-dst ( c addr u -- )
-\ writes the character in c to the location specified by the two values on top
-  + c!
   ;
 
 : take-first-six-bits ( b -- b )
@@ -75,23 +74,17 @@
   6 rshift rot or
   ;
 
-: >base64 { src src-len -- addr u }
-  src src-len
-  base64-encode-len here swap
-  dup chars allot
-  fill-with-base64-padding-char
-  0 0
-  { dst dst-len src-idx dst-idx }
-  dst-len 0<> if
+: >base64 { src src-len -- }
+  0
+  { src-idx }
+  src-len 0> if
       begin
           \ take next byte from source
           src src-idx next-byte
           src-idx 1+ to src-idx
 
           \ map first six bits and write to destination
-          take-first-six-bits base64-map-value
-          dst dst-idx write-to-dst
-          dst-idx 1+ to dst-idx 
+          take-first-six-bits base64-emit-value
 
           take-last-two-bits
           \ if src is fully consumed, the last two bits come into the result; else proceed 
@@ -101,9 +94,7 @@
               src-idx 1+ to src-idx
 
               \ combine values and write to destination
-              merge-with-next-four-bits base64-map-value
-              dst dst-idx write-to-dst
-              dst-idx 1+ to dst-idx
+              merge-with-next-four-bits base64-emit-value
 
               take-last-four-bits
               \ if src is fully consumed, the last four bits come into the result; else proceed 
@@ -113,30 +104,22 @@
                   src-idx 1+ to src-idx
 
                   \ combine values and write to destination
-                  merge-with-next-two-bits base64-map-value
-                  dst dst-idx write-to-dst
-                  dst-idx 1+ to dst-idx
+                  merge-with-next-two-bits base64-emit-value
 
                   \ map last six bits and write to destination
-                  take-last-six-bits base64-map-value
-                  dst dst-idx write-to-dst
-                  dst-idx 1+ to dst-idx
+                  take-last-six-bits base64-emit-value
               else
                   \ map last four bits and write to destination
-                  base64-map-value
-                  dst dst-idx write-to-dst
-                  dst-idx 1+ to dst-idx
+                  base64-emit-value
               endif
           else
               \ map last two bits and write to destination
-              base64-map-value
-              dst dst-idx write-to-dst
-              dst-idx 1+ to dst-idx
+              base64-emit-value
           endif
 
       src-idx src-len >= until
+      src-len base64-encode-padding-char-num 0 u+do base64-padding-char emit loop
   endif
-  dst dst-len
   ;
 
 : base64> { src src-len -- addr u }
