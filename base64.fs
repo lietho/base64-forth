@@ -115,42 +115,54 @@
 
 \ todo docs
 
-: mod-zero
+: emit-ascii-as-char
+  pad c! pad 1 type
+  ;
+
+: take-all-encoded
   2 lshift 
   ;
 
-: mod-one 
-  dup 48 and 4 rshift rot or swap 
+: merge-with-next-two-encoded
+  dup 48 and 4 rshift rot or
+  ;
+
+: take-last-four-encoded
   15 and 4 lshift
   ;
 
-: mod-two
-  dup 60 and 2 rshift rot or swap
+: merge-with-next-four-encoded
+  dup 60 and 2 rshift rot or 
+  ;
+
+: take-last-two-encoded
   3 and 6 lshift
   ;
 
-: mod-three
-  or
-  ;
 
 : base64> { src src-len --  }
   src-len 0 u+do
     src i + c@ base64-reverse-map-value 
 
     i 4 mod 0 = if
-      mod-zero
+      take-all-encoded
     endif
 
     i 4 mod 1 = if
-      mod-one
+      merge-with-next-two-encoded
+      emit-ascii-as-char
+      take-last-four-encoded
     endif
 
     i 4 mod 2 = if
-      mod-two
+      merge-with-next-four-encoded
+      emit-ascii-as-char
+      take-last-two-encoded
     endif
 
     i 4 mod 3 = if
-      mod-three
+      or
+      emit-ascii-as-char
     endif
   loop
   ;
