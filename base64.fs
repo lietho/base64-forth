@@ -78,24 +78,24 @@
     \ take next byte from source
     src i next-byte
 
-    i 3 mod 0 = if
+    i 3 mod case
+    0 of 
       \ map first six bits and emit
       take-first-six-bits base64-emit-value
       take-last-two-bits
-    endif
-
-    i 3 mod 1 = if
+    endof
+    1 of
       \ combine four bits with previous two bits and emit
       merge-with-next-four-bits base64-emit-value
       take-last-four-bits
-    endif
-
-    i 3 mod 2 = if
+    endof
+    2 of
       \ combine two bits with previous four bits
       merge-with-next-two-bits base64-emit-value
       \ map last six bits and emit
       take-last-six-bits base64-emit-value
-    endif
+    endof
+    endcase
 
   loop
   \ emit the remaining bits if necessary
@@ -144,26 +144,24 @@
   src-len 0 u+do
     src i + c@ base64-reverse-map-value 
 
-    i 4 mod 0 = if
+    i 4 mod case
+    0 of 
       take-all-encoded
-    endif
-
-    i 4 mod 1 = if
+    endof
+    1 of
       merge-with-next-two-encoded
       emit-ascii-as-char
       take-last-four-encoded
-    endif
-
-    i 4 mod 2 = if
+    endof
+    2 of
       merge-with-next-four-encoded
       emit-ascii-as-char
       take-last-two-encoded
-    endif
-
-    i 4 mod 3 = if
-      or
-      emit-ascii-as-char
-    endif
+    endof
+    3 of
+      or emit-ascii-as-char
+    endof
+    endcase
   loop
   ;
 
