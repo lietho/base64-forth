@@ -104,6 +104,55 @@
   src-len base64-encode-padding-char-num 0 u+do base64-padding-char emit loop
   ;
 
+: base64-reverse-map-value ( u -- u )
+  s" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" drop
+  63 0 u+do
+    2dup i chars + c@ 
+    = if i swap endif
+  loop
+  drop swap drop
+  ;
+
+\ todo docs
+
+: mod-zero
+  2 lshift 
+  ;
+
+: mod-one 
+  dup 48 and 4 rshift rot or swap 
+  15 and 4 lshift
+  ;
+
+: mod-two
+  dup 60 and 2 rshift rot or swap
+  3 and 6 lshift
+  ;
+
+: mod-three
+  or
+  ;
 
 : base64> { src src-len --  }
+  src-len 0 u+do
+    src i + c@ base64-reverse-map-value 
+
+    i 4 mod 0 = if
+      mod-zero
+    endif
+
+    i 4 mod 1 = if
+      mod-one
+    endif
+
+    i 4 mod 2 = if
+      mod-two
+    endif
+
+    i 4 mod 3 = if
+      mod-three
+    endif
+  loop
   ;
+
+
