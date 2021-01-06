@@ -13,10 +13,13 @@ s" Zm9vYg=="  base64-decode-len 4 <> throw
 s" Zm9vYmE="  base64-decode-len 5 <> throw
 s" Zm9vYmFy"  base64-decode-len 6 <> throw
 
-s" "          base64> s" "        test
-s" Zg=="      base64> s" f"       test
-s" Zm8="      base64> s" fo"      test
-s" Zm9v"      base64> s" foo"     test
-s" Zm9vYg=="  base64> s" foob"    test
-s" Zm9vYmE="  base64> s" fooba"   test
-s" Zm9vYmFy"  base64> s" foobar"  test
+: string-base64> ( addr u -- addr u )
+  ['] base64> >string-execute ;
+
+s" "          string-base64> s" "        test
+s" Zg=="      string-base64> s" f"       test
+s" Zm8="      string-base64> s" fo"      test
+s" Zm9v"      string-base64> s" foo"     test
+s" Zm9vYg=="  string-base64> s" foob"    test
+s" Zm9vYmE="  string-base64> s" fooba"   test
+s" Zm9vYmFy"  string-base64> s" foobar"  test
