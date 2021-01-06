@@ -104,64 +104,103 @@
   src-len base64-encode-padding-char-num 0 u+do base64-padding-char emit loop
   ;
 
-: base64-reverse-map-value ( u -- u )
+: base64>c ( u -- u )
+\ maps a Base64 character to its position in the B64 encoding (between 0 and 63) by a map
   s" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" drop
   63 0 u+do
     2dup i chars + c@ 
-    = if i swap endif
+    = if i rot rot endif
   loop
-  drop swap drop
+  2drop
   ;
 
-\ todo docs
+: base64>c-alt  
+\ calculates a Base64 character's position in the B64 encoding (between 0 and 63)
+  dup 96 > if 
+    71 -
+  else
+    dup 64 > if
+      65 -
+    else
+      dup 47 > if
+        4 +
+      else \ + and /
+        dup 47 = if
+          drop 63
+        else
+          drop 62
+        endif
+      endif
+    endif
+  endif
+  ;
 
 : emit-ascii-as-char
+\ take a character as a number and emit it
   pad c! pad 1 type
   ;
 
 : take-all-encoded
+\ take all encoded (6) bits and shift them to the left end: (11111100)
   2 lshift 
   ;
 
 : merge-with-next-two-encoded
+\ take the bits (00110000) and add them in this position (00000011)
   dup 48 and 4 rshift rot or
   ;
 
 : take-last-four-encoded
+\ take the bits (00001111) and move them to this position (11110000)
   15 and 4 lshift
   ;
 
 : merge-with-next-four-encoded
+\ take the bits (00111100) and add them in this position (00001111)
   dup 60 and 2 rshift rot or 
   ;
 
 : take-last-two-encoded
+\ take the bits (00000011) and move them to this position (11000000)
   3 and 6 lshift
   ;
 
 
 : base64> { src src-len --  }
   src-len 0 u+do
-    src i + c@ base64-reverse-map-value 
+    \ take the next byte from the source and transform it into a base64 position
+    src i + c@ dup
+    base64-padding-char <> if
+    base64>c
 
     i 4 mod case
     0 of 
+      \ move last six bits to the left end
       take-all-encoded
     endof
     1 of
+      \ merge previous six bits with the next encoded four and emit
       merge-with-next-two-encoded
       emit-ascii-as-char
+      \ move the remaining four encoded bits to the left end
       take-last-four-encoded
     endof
     2 of
+      \ merge previous four bits with the next encoded four bits and emit
       merge-with-next-four-encoded
       emit-ascii-as-char
+      \ move the remaining two encoded bits to the left end
       take-last-two-encoded
     endof
     3 of
+      \ merge previous two bits with the next encoded six bits and emit
       or emit-ascii-as-char
     endof
     endcase
+    else 
+     \ ignore padding chars
+     drop
+    endif
   loop
   ;
 
