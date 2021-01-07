@@ -1,19 +1,5 @@
 : base64-padding-char ( -- c) '=' ;
 
-: base64-padding-char-num ( addr u -- u)
-\ gets the number of the padding characters at the end of the specified string
-  0 >r
-  begin
-      1- 2dup
-      chars + c@
-      base64-padding-char <> dup invert
-      if
-          r> 1+ >r
-      endif
-  until 
-  2drop
-  r> ;
-
 : base64-emit-value ( u --)
 \ maps a value between 0 and 63 to the corresponding character and emits it
   s" ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -31,12 +17,6 @@
   swap
   4 * 3 /ceil
   - ;
-
-: base64-decode-len ( addr u -- u )
-\ calculates the size of the decoded string by the size of the encoded string
-  2dup base64-padding-char-num >r
-  4 / 3 * r> -
-  nip ;
 
 : next-byte ( addr u -- b b )
 \ takes a char/byte from a source and puts it onto the stack two times
