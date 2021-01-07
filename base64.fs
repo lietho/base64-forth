@@ -115,11 +115,6 @@
   endif
   ;
 
-: emit-ascii-as-char
-\ take a character as a number and emit it
-  pad c! pad 1 type
-  ;
-
 : take-all-encoded
 \ take all encoded (6) bits and shift them to the left end: (11111100)
   2 lshift 
@@ -161,20 +156,20 @@
     1 of
       \ merge previous six bits with the next encoded four and emit
       merge-with-next-two-encoded
-      emit-ascii-as-char
+      emit
       \ move the remaining four encoded bits to the left end
       take-last-four-encoded
     endof
     2 of
       \ merge previous four bits with the next encoded four bits and emit
       merge-with-next-four-encoded
-      emit-ascii-as-char
+      emit
       \ move the remaining two encoded bits to the left end
       take-last-two-encoded
     endof
     3 of
       \ merge previous two bits with the next encoded six bits and emit
-      or emit-ascii-as-char
+      or emit
     endof
     endcase
     else 
